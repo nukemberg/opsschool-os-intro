@@ -20,7 +20,8 @@ Alternatively, use `python run-me.py &` to run the process in the background if 
 1. Install a signal handler for `USR2` as well, run the program and send `USR1` immediately followed by `USR2` to the process. 
 
 ## Alarms
-1. Run `alarm.py` process
+1. Run `alarm.py` process and observe the behavior
+1. Comment the sleep part and uncomment the socket listening part. Run the process again.
 
 ## Discussion
 - Which signals cause the process to exit normally? which cause it to exit abnormally? can this be controlled?
@@ -31,7 +32,9 @@ Alternatively, use `python run-me.py &` to run the process in the background if 
 - What happens when a signal is caught while another signal is running? how can this be controlled?
 - What is the purpose of the `ABRT` signal?
 - What happens when a signal is caught during `sleep`? what happens when the signal handler finishes?
+- What is the purpose of the `ALRM` signal?
 
 ## References
 - https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals
 - [man 7 signal](http://man7.org/linux/man-pages/man7/signal.7.html)
+- [man 2 alarm](http://man7.org/linux/man-pages/man2/alarm.2.html)
