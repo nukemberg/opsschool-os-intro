@@ -7,8 +7,8 @@ When you run `python run-me.py` the process will print its _pid_ so you can easi
 Alternatively, use `python run-me.py &` to run the process in the background if you want to send signals using the same terminal.
 
 ## Signals
-1. Run the process and kill it with _ctrl+c_. Run it again and send the `INT` signal to it.
-1. Edit the process and install a signal handler on `INT` signal. Now run and use _ctrl+c_ again.
+1. Run the `run-me.py` file and kill the process with _ctrl+c_. Run it again and send the `INT` signal to it.
+1. Edit the `run-me.py` file and install a signal handler on `INT` signal. Now run and use _ctrl+c_ again.
 1. How do you stop a process without _ctrl+c_? Try sending the `QUIT` signal to the process.
 1. Install a signal handler for the `QUIT` signal, run it again and send the `QUIT` signal to it.
 1. Run and send the `HUP` signal to the process. Install a signal handler for the `HUP` signal, run and close the terminal (or SSH). Is the process still running?
