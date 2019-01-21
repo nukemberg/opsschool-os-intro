@@ -1,0 +1,13 @@
+default         0
+fallback        1
+timeout         0
+
+title           Debian GNU/Linux, kernel 4.9.0-8-amd64
+root            (hd0)
+kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=rootfs ro
+initrd          /boot/initrd.img-4.9.0-8-amd64
+
+title           Debian GNU/Linux, kernel 4.9.0-8-amd64 (fallback)
+root            (hd0,0)
+kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=roots ro
+initrd          /boot/initrd.img-4.9.0-8-amd64
