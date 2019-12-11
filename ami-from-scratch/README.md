@@ -1,6 +1,14 @@
 # AMI from scratch
 In this exercise you will create an AMI (Amazon Machine Image) from scratch. AMI is a virtual machine image format used by EC2 instances and is a packaging of a disk image containing a comptible O/S. The kernel and optional initial ramdrive are usually provided seperately (AKI and ARI) and are registered in the AMI metadata. Unfortunately AWS does not allow registering kernel images without special permissions, so in order to run a custom kernel we will use a special AKI (kernel image) called `pvgrub` which is a special grub bootloader for hypervisors. `pvgrub` will then act like any other bootloader and load the kernel and ramdrive from the disk image itself allowing us to bundle our own kernel in the AMI.
 
+## AMI types and instance types
+There are 2 types of AMIs:
+* EBS AMI - a snapshot of an EBS volume. A new volume will be provisioned from it to be the root device of the new instance
+* Instance store AMI - an image file which saved on S3 and is deployed to a local disk of a host as a root device for the new instance
+
+The main difference is that instance store AMIs are supported only by older instance types. You can create any image on any instance type but when testing the AMI you must use a compatible instance type. More information is available in the [EC2 documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ComponentsAMIs.html). If you are creating an instance store AMI, use an instance of type `m3.medium` or similar to check your work.
+
+
 ## Overview
 The rough steps to create an AMI:
 1. Create a raw disk image using `dd`, format it and mount it
@@ -19,19 +27,33 @@ Make sure you are working on Linux, preferably Debian or Ubuntu since we will be
 Most of the following commands need to be run as root (use sudo as appropriate or just work as root).
 
 ## Creating the disk image
+### Instance store
 To create a 2GB disk image we will use `dd`:
 ```
 cd /mnt
 dd if=/dev/zero of=ami-disk.img count=1024 bs=1M
 ```
-Format the image to ext3 (note the label)
+Format the image to ext4 (note the label)
 ```
-mkfs -t ext3 -L rootfs -F ami-disk.img
+mkfs -t ext4 -L rootfs -F ami-disk.img
 ```
 Mount the image
 ```
-mkdir image_root
-mount -o loop ami-disk.img image_root
+mkdir /mnt/image_root
+mount -o loop ami-disk.img /mnt/image_root
+```
+
+### EBS
+Create an EBS volume using `aws-cli` or the console with at least 1GB size (recommended < 10GB). Attach it to the instance you are working on and then (assuming you attached to `/dev/xvdf`):
+
+Format the volume to ext4 (note the label)
+```
+mkfs -t ext4 -L rootfs /dev/xvdf
+```
+Mount the volume
+```
+mkdir /mnt/image_root
+mount /dev/xvdf /mnt/image_root
 ```
 
 ## Installing Debian into the new root
@@ -168,7 +190,7 @@ umount ./image_root/proc
 umount ./image_root
 ```
 
-### EC2 AMI tools
+### Instance store: using EC2 AMI tools
 We will bundle the image using AWS' EC2 AMI tools. Follow the instructions below, for more information see [AMI tools setup guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/set-up-ami-tools.html).
 
 Download the tools into your development server:
@@ -198,12 +220,48 @@ Upload the image to S3 (just click Y if you get a warning about the region):
 ```
 ec2-upload-bundle -a AWS_ACCESS_KEY_ID -s AWS_SECRET_ACCESS_KEY -b S3_BUCKET -m ami/ami-disk.img.manifest.xml -d ami --region REGION
 ```
+
 And finally register it as an AMI (using `awscli`) - you will get the new AMI id from it:
 ```
 aws ec2 register-image --name IMAGE_NAME --image-location S3_BUCKET/ami-disk.img.manifest.xml --region REGION
 ```
 
-Now run an instance using this image to test it's working ok:
+### EBS volume: create a snapshot and register the image
+The following is done with `awscli` (on your laptop). Create a snapshot of the EBS volume you used:
+```
+aws ec2 create-snapshot --region REGION --volume-id VOLUME-ID --description "Be nice, write something here"
+```
+Edit the following command with the proper parameters, you can find the pv-grub aki in the [pvgrub AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html) (in _eu-west-1_ that would be `aki-dc9ed9af`).
+Register the snapshot as an AMI (using the snapshot id from the previous step):
+```
+aws ec2 register-image --region REGION --architecture x86_64 --kernel-id PV-GRUB-AKI --name "image-name" --description "some doc string" --root-device-name "/dev/sda1" --block-device-mappings '[
+    {
+        "DeviceName": "/dev/sda1",
+        "Ebs": {
+            "SnapshotId": "SNAPSHOT-ID"
+        }
+    },
+    {
+        "DeviceName": "/dev/sdb",
+        "VirtualName": "ephemeral0"
+    },
+    {
+        "DeviceName": "/dev/sdc",
+        "VirtualName": "ephemeral1"
+    },
+    {
+        "DeviceName": "/dev/sdd",
+        "VirtualName": "ephemeral2"
+    },
+    {
+        "DeviceName": "/dev/sde",
+        "VirtualName": "ephemeral3"
+    }
+]'
+```
+
+## How to check your work
+Run an instance using this image to test it's working ok:
 ```
 aws ec2 run-instances --image-id AMI-ID --key-name YOUR_KEY_NAME --region REGION
 ```
@@ -211,7 +269,6 @@ If you did everything right, you should be able to ssh into your new instance wi
 
 If you got it wrong, you can remove the image with `aws ec2 deregister-image` (you still have cleanup S3 yourself).
 
-## How to check your work
 If you've successfully ran an instance from the newly created AMI and ssh'd into it with the `admin` user successfully, you're done!
 
 If you've booted the AMI and cannot login to your instance, use EC2 console to get the instance console output. Right click on the instance in the console, select _Instance Settings_ -> _Get System Log_
