@@ -44,7 +44,7 @@ mount -o loop ami-disk.img /mnt/image_root
 ```
 
 ### EBS
-Create an EBS volume using `aws-cli` or the console with at least 1GB size (recommended < 10GB). Attach it to the instance you are working on and then (assuming you attached to `/dev/xvdf`):
+Create an EBS volume using `aws-cli` or the console with at least 1GB size (recommended < 10GB). Attach it to the instance you are working on and then (assuming you attached to `/dev/sdf` -> see bellow):
 
 Format the volume to ext4 (note the label)
 ```
@@ -55,6 +55,8 @@ Mount the volume
 mkdir /mnt/image_root
 mount /dev/xvdf /mnt/image_root
 ```
+
+* A note on device names: Older virtualization use device names of physical devices like `/dev/sda` and EC2 still uses that on their API. On paravirtualized instances the kernel will see `/dev/sda` as `/dev/xvda`, `/dev/sdf` as `/dev/xvdf`, etc. 
 
 ## Installing Debian into the new root
 We will use `debootstrap` - a Debian utility to bootstrap `dpkg` and `apt` into an empty root and install the base packages for Debian. Other distributions have equivalent tools.
