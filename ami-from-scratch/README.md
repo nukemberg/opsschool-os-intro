@@ -261,7 +261,7 @@ aws ec2 register-image --region REGION --architecture x86_64 --kernel-id PV-GRUB
 ```
 
 ## How to check your work
-Run an instance using this image to test it's working ok:
+Run an instance using this image to test it's working ok (make sure you are using a compatible instance type if using instance store AMI):
 ```
 aws ec2 run-instances --image-id AMI-ID --key-name YOUR_KEY_NAME --region REGION
 ```
