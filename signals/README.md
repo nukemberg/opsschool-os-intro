@@ -3,11 +3,11 @@ This exercise teaches the basics of how signals work. During this exercise we wi
 
 Make sure you are running on a POSIX compatible O/S (Linux, OSX, etc).
 
-When you run `python run-me.py` the process will print its _pid_ so you can easily send signals to it. 
+When you run `python run-me.py` the process will print its _pid_ so you can easily send signals to it. When the process is running in the foreground you can use another terminal window to send signals to it.
 Alternatively, use `python run-me.py &` to run the process in the background if you want to send signals using the same terminal.
 
 ## Signals
-1. Run the `run-me.py` file and kill the process with _ctrl+c_. Run it again and send the `INT` signal to it.
+1. Run the `run-me.py` file in the foreground and kill the process with _ctrl+c_. Run it again and send the `INT` signal to it.
 1. Edit the `run-me.py` file and install a signal handler on `INT` signal. Now run and use _ctrl+c_ again.
 1. How do you stop a process without _ctrl+c_? Try sending the `QUIT` signal to the process.
 1. Install a signal handler for the `QUIT` signal, run it again and send the `QUIT` signal to it.
@@ -15,7 +15,7 @@ Alternatively, use `python run-me.py &` to run the process in the background if 
 1. Run and send the `KILL` signal to the process. Install a signal handler for `KILL` then try again.
 
 ## Signal queue
-1. Run the process with signal handler install for `USR1` only
+1. Run the process with signal handler installed for `USR1` only
 1. Send `USR1` to the process and then immediately send it again. Observe the output of the program.
 1. Install a signal handler for `USR2` as well, run the program and send `USR1` immediately followed by `USR2` to the process. 
 
