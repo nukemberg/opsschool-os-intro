@@ -84,7 +84,7 @@ cd /dev
 /sbin/MAKEDEV console
 /sbin/MAKEDEV std
 ```
-`MAKEDEV` is a shell script which creates devices using `mknod`, we are using it because it already knows the necessary device major and minor numbers for various standard devices.
+`MAKEDEV` is a shell script which creates devices using `mknod`, we are using it because it already knows the necessary device [major and minor numbers](http://books.gigatux.nl/mirror/solaris10examprep/0789734613/ch01lev1sec10.html) for various [standard devices](https://www.kernel.org/doc/Documentation/admin-guide/devices.txt).
 
 Inspect the newly created devices:
 ```
@@ -118,7 +118,7 @@ adduser --disabled-password --add_extra_groups admin
 echo 'admin ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/00_admin
 ```
 
-To allow the user to login with an ssh key we need to integrate with EC2's metadata API. The metadata API is available from an EC2 instance on `http://169.254.169.254/latest/meta-data/` (try it!) and in the old days we used to fetch the SSH public key from it directly. Nowdays there's a utility designed to do just that (and much more) called [`could-init`](https://cloudinit.readthedocs.io/en/latest/). In this exercise we won't use it and do things ourselves.
+To allow the user to login with an ssh key we need to integrate with EC2's metadata API. The metadata API is available from an EC2 instance on `http://169.254.169.254/latest/meta-data/` (try it!) and in the old days we used to fetch the SSH public key from it directly. Nowadays there's a utility designed to do just that (and much more) called [`could-init`](https://cloudinit.readthedocs.io/en/latest/). In this exercise we won't use it and do things ourselves.
 
 ```
 apt install -y ssh
@@ -160,10 +160,15 @@ Don't forget to `chmod +x /etc/prep-instance`
 Finally, since debian uses systemd we need to have systemd run our `prep-instance` file on boot. Copy the `systemd-prep-instance.service` in this repository to your image `/etc/systemd/system/prep-instance.service` and enable it with `systemctl enable prep-instance`
 
 ## Setup grub and the kernel
+How does EC2 know where the kernel is and which kernel to load? The answer is that the AMI metadata refers to AKI (Amazon Kernel Image) which is created and registered independently from the AMI. Registering an AKI is limited to AWS partners, but fortunately EC2 provides a special kernel image: [pvgrub](https://wiki.xenproject.org/wiki/PvGrub2). _pvgrub_ is a boot loader - basically a minimal kernel who'se only job is to find and load the real kernel. It can look into filesystems and looks for kernels in a designated boot partition, usually mounted as `/boot`. 
+
+[pvgrub AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html)
+
 Install a kernel:
 ```
 apt install -y linux-image-amd64
 ```
+
 
 The `/boot/grub/menu.lst` file is grub's configuration file and tells it which kernels are available, where and how to boot them (e.g. kernel parameters).
 It should look like this (copy from here or from the file in the repo, adjust for your kernel - `ls /boot/` is your friend):
@@ -182,8 +187,6 @@ root            (hd0,0)
 kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=roots ro
 initrd          /boot/initrd.img-4.9.0-8-amd64
 ```
-
-[pvgrub AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html)
 
 ## Bundle the image
 First let's unmount the image
