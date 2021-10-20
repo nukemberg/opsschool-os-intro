@@ -61,7 +61,7 @@ mount /dev/xvdf /mnt/image_root
 ## Installing Debian into the new root
 We will use `debootstrap` - a Debian utility to bootstrap `dpkg` and `apt` into an empty root and install the base packages for Debian. Other distributions have equivalent tools.
 ```
-debootstrap --arch amd64 stretch ./image_root
+debootstrap --arch amd64 bullseye ./image_root
 ```
 
 If `debootstrap` is not available on your machine you can install it with `apt install debootstrap`
