@@ -179,12 +179,12 @@ timeout         0
 
 title           Debian GNU/Linux, kernel 4.9.0-8-amd64
 root            (hd0)
-kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=rootfs ro
+kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=rootfs ro console=hvc0
 initrd          /boot/initrd.img-4.9.0-8-amd64
 
 title           Debian GNU/Linux, kernel 4.9.0-8-amd64 (fallback)
 root            (hd0,0)
-kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=roots ro
+kernel          /boot/vmlinuz-4.9.0-8-amd64 root=LABEL=roots ro console=hvc0
 initrd          /boot/initrd.img-4.9.0-8-amd64
 ```
 
