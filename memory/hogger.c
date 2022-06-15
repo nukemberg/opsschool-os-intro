@@ -17,6 +17,10 @@ int main(int argc, char** argv) {
     long SIZE = (long)mb*(1L<<20);
     printf("[%d] Allocating %dMB (%ld bytes)\n", pid, mb, SIZE);
     char *buff = malloc(SIZE);
+    if (buff == NULL) {
+        fprinf(stderr, "Allocation failed!\n");
+        return -2;
+    }
     printf("[%d] Dirtying pages\n", pid);
     for (long offset = 0; offset < SIZE; offset += PAGE_SIZE) {
         buff[offset] = 0;
